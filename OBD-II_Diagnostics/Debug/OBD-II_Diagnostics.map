@@ -1,7 +1,7 @@
 ******************************************************************************
                   TI ARM Linker PC v20.2.7                     
 ******************************************************************************
->> Linked Sat Jan  3 04:44:30 2026
+>> Linked Sun Jan  4 11:21:43 2026
 
 OUTPUT FILE NAME:   <OBD-II_Diagnostics.out>
 ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 0000026d

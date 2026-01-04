@@ -548,3 +548,289 @@ Finished building target: "OBD-II_Diagnostics.out"
  
 
 **** Build Finished ****
+
+**** Build of configuration Debug for project OBD-II_Diagnostics ****
+
+"C:\\ti\\ccs1281\\ccs\\utils\\bin\\gmake" -k -j 6 all -O 
+ 
+Building file: "../obd.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="obd.d_raw"  "../obd.c"
+ 
+>> Compilation failure
+subdir_rules.mk:9: recipe for target 'obd.obj' failed
+"../obd.c", line 64: error #29: expected an expression
+"../obd.c", line 64: error #20: identifier "i" is undefined
+2 errors detected in the compilation of "../obd.c".
+gmake: *** [obd.obj] Error 1
+Building file: "../can.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="can.d_raw"  "../can.c"
+ 
+>> Compilation failure
+subdir_rules.mk:9: recipe for target 'can.obj' failed
+"../can.c", line 62: error #20: identifier "CAN0_CTL_REG" is undefined
+"../can.c", line 77: error #20: identifier "CAN0_BIT_REG" is undefined
+"../can.c", line 82: error #20: identifier "CAN0_TST_REG" is undefined
+"../can.c", line 99: error #20: identifier "CAN0_IF1CRQ_REG" is undefined
+"../can.c", line 109: error #20: identifier "CAN0_IF1CMSK_REG" is undefined
+"../can.c", line 116: error #20: identifier "CAN0_IF1ARB1_REG" is undefined
+"../can.c", line 117: error #20: identifier "CAN0_IF1ARB2_REG" is undefined
+"../can.c", line 124: error #20: identifier "CAN0_IF1MCTL_REG" is undefined
+"../can.c", line 127: error #20: identifier "CAN0_IF1DA1_REG" is undefined
+"../can.c", line 128: error #20: identifier "CAN0_IF1DA2_REG" is undefined
+"../can.c", line 129: error #20: identifier "CAN0_IF1DB1_REG" is undefined
+"../can.c", line 130: error #20: identifier "CAN0_IF1DB2_REG" is undefined
+"../can.c", line 145: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 154: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 157: error #20: identifier "CAN0_IF2MSK1_REG" is undefined
+"../can.c", line 158: error #20: identifier "CAN0_IF2MSK2_REG" is undefined
+"../can.c", line 162: error #20: identifier "CAN0_IF2ARB1_REG" is undefined
+"../can.c", line 163: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 169: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 189: error #20: identifier "CAN0_NWDA1_REG" is undefined
+"../can.c", line 198: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 207: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 216: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 219: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 222: error #20: identifier "CAN0_IF2DA1_REG" is undefined
+At end of source: error #135: expected a field name
+At end of source: error #66: expected a ";"
+At end of source: warning #994-D: missing return statement at end of non-void function "CAN_Receive"
+At end of source: error #68: expected a "}"
+28 errors detected in the compilation of "../can.c".
+gmake: *** [can.obj] Error 1
+gmake: Target 'all' not remade because of errors.
+
+**** Build Finished ****
+
+**** Build of configuration Debug for project OBD-II_Diagnostics ****
+
+"C:\\ti\\ccs1281\\ccs\\utils\\bin\\gmake" -k -j 6 all -O 
+ 
+Building file: "../can.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="can.d_raw"  "../can.c"
+ 
+>> Compilation failure
+subdir_rules.mk:9: recipe for target 'can.obj' failed
+"../can.c", line 52: error #20: identifier "CAN0_CTL_REG" is undefined
+"../can.c", line 56: error #20: identifier "CAN0_BIT_REG" is undefined
+"../can.c", line 57: error #20: identifier "CAN0_BRPE_REG" is undefined
+"../can.c", line 62: error #20: identifier "CAN0_TST_REG" is undefined
+"../can.c", line 74: error #20: identifier "CAN0_IF1CRQ_REG" is undefined
+"../can.c", line 77: error #20: identifier "CAN0_IF1CMSK_REG" is undefined
+"../can.c", line 81: error #20: identifier "CAN0_IF1ARB1_REG" is undefined
+"../can.c", line 82: error #20: identifier "CAN0_IF1ARB2_REG" is undefined
+"../can.c", line 85: error #20: identifier "CAN0_IF1MCTL_REG" is undefined
+"../can.c", line 88: error #20: identifier "CAN0_IF1DA1_REG" is undefined
+"../can.c", line 89: error #20: identifier "CAN0_IF1DA2_REG" is undefined
+"../can.c", line 90: error #20: identifier "CAN0_IF1DB1_REG" is undefined
+"../can.c", line 91: error #20: identifier "CAN0_IF1DB2_REG" is undefined
+"../can.c", line 101: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 104: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 108: error #20: identifier "CAN0_IF2MSK1_REG" is undefined
+"../can.c", line 109: error #20: identifier "CAN0_IF2MSK2_REG" is undefined
+"../can.c", line 112: error #20: identifier "CAN0_IF2ARB1_REG" is undefined
+"../can.c", line 113: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 116: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 129: error #20: identifier "CAN0_NWDA1_REG" is undefined
+"../can.c", line 134: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 137: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 145: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 146: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 148: error #20: identifier "CAN0_IF2DA1_REG" is undefined
+"../can.c", line 150: error #20: identifier "CAN0_IF2DA2_REG" is undefined
+"../can.c", line 152: error #20: identifier "CAN0_IF2DB1_REG" is undefined
+"../can.c", line 154: error #20: identifier "CAN0_IF2DB2_REG" is undefined
+29 errors detected in the compilation of "../can.c".
+gmake: *** [can.obj] Error 1
+Building file: "../obd.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="obd.d_raw"  "../obd.c"
+Finished building: "../obd.c"
+ 
+gmake: Target 'all' not remade because of errors.
+
+**** Build Finished ****
+
+**** Build of configuration Debug for project OBD-II_Diagnostics ****
+
+"C:\\ti\\ccs1281\\ccs\\utils\\bin\\gmake" -k -j 6 all -O 
+ 
+Building file: "../can.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="can.d_raw"  "../can.c"
+ 
+>> Compilation failure
+subdir_rules.mk:9: recipe for target 'can.obj' failed
+"../can.c", line 52: error #20: identifier "CAN0_CTL_REG" is undefined
+"../can.c", line 56: error #20: identifier "CAN0_BIT_REG" is undefined
+"../can.c", line 57: error #20: identifier "CAN0_BRPE_REG" is undefined
+"../can.c", line 62: error #20: identifier "CAN0_TST_REG" is undefined
+"../can.c", line 74: error #20: identifier "CAN0_IF1CRQ_REG" is undefined
+"../can.c", line 77: error #20: identifier "CAN0_IF1CMSK_REG" is undefined
+"../can.c", line 81: error #20: identifier "CAN0_IF1ARB1_REG" is undefined
+"../can.c", line 82: error #20: identifier "CAN0_IF1ARB2_REG" is undefined
+"../can.c", line 85: error #20: identifier "CAN0_IF1MCTL_REG" is undefined
+"../can.c", line 88: error #20: identifier "CAN0_IF1DA1_REG" is undefined
+"../can.c", line 89: error #20: identifier "CAN0_IF1DA2_REG" is undefined
+"../can.c", line 90: error #20: identifier "CAN0_IF1DB1_REG" is undefined
+"../can.c", line 91: error #20: identifier "CAN0_IF1DB2_REG" is undefined
+"../can.c", line 101: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 104: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 108: error #20: identifier "CAN0_IF2MSK1_REG" is undefined
+"../can.c", line 109: error #20: identifier "CAN0_IF2MSK2_REG" is undefined
+"../can.c", line 112: error #20: identifier "CAN0_IF2ARB1_REG" is undefined
+"../can.c", line 113: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 116: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 129: error #20: identifier "CAN0_NWDA1_REG" is undefined
+"../can.c", line 134: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 137: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 145: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 146: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 148: error #20: identifier "CAN0_IF2DA1_REG" is undefined
+"../can.c", line 150: error #20: identifier "CAN0_IF2DA2_REG" is undefined
+"../can.c", line 152: error #20: identifier "CAN0_IF2DB1_REG" is undefined
+"../can.c", line 154: error #20: identifier "CAN0_IF2DB2_REG" is undefined
+29 errors detected in the compilation of "../can.c".
+gmake: *** [can.obj] Error 1
+Building file: "../obd.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="obd.d_raw"  "../obd.c"
+Finished building: "../obd.c"
+ 
+gmake: Target 'all' not remade because of errors.
+
+**** Build Finished ****
+
+**** Build of configuration Debug for project OBD-II_Diagnostics ****
+
+"C:\\ti\\ccs1281\\ccs\\utils\\bin\\gmake" -k -j 6 all -O 
+ 
+Building file: "../can.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="can.d_raw"  "../can.c"
+ 
+>> Compilation failure
+subdir_rules.mk:9: recipe for target 'can.obj' failed
+"../can.c", line 70: error #20: identifier "CAN0_CTL_REG" is undefined
+"../can.c", line 70: error #20: identifier "CAN_CTL_INIT" is undefined
+"../can.c", line 73: error #20: identifier "CAN_CTL_CCE" is undefined
+"../can.c", line 81: error #20: identifier "CAN_CTL_TEST" is undefined
+"../can.c", line 82: error #20: identifier "CAN0_TST_REG" is undefined
+"../can.c", line 82: error #20: identifier "CAN_TST_LBACK" is undefined
+"../can.c", line 139: error #20: identifier "CAN0_BIT_REG" is undefined
+"../can.c", line 142: error #20: identifier "CAN0_BRPE_REG" is undefined
+"../can.c", line 150: error #20: identifier "CAN0_IF1CRQ_REG" is undefined
+"../can.c", line 161: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 183: error #20: identifier "CAN0_IF1CMSK_REG" is undefined
+"../can.c", line 183: error #20: identifier "CAN_IFCMSK_WRNRD" is undefined
+"../can.c", line 183: error #20: identifier "CAN_IFCMSK_ARB" is undefined
+"../can.c", line 183: error #20: identifier "CAN_IFCMSK_CONTROL" is undefined
+"../can.c", line 184: error #20: identifier "CAN_IFCMSK_DATAA" is undefined
+"../can.c", line 184: error #20: identifier "CAN_IFCMSK_DATAB" is undefined
+"../can.c", line 191: error #20: identifier "CAN_IFARB2_MSGVAL" is undefined
+"../can.c", line 191: error #20: identifier "CAN_IFARB2_DIR" is undefined
+"../can.c", line 197: error #20: identifier "CAN_IFARB2_MSGVAL" is undefined
+"../can.c", line 198: error #20: identifier "CAN_IFARB2_XTD" is undefined
+"../can.c", line 198: error #20: identifier "CAN_IFARB2_DIR" is undefined
+"../can.c", line 201: error #20: identifier "CAN0_IF1ARB1_REG" is undefined
+"../can.c", line 202: error #20: identifier "CAN0_IF1ARB2_REG" is undefined
+"../can.c", line 205: error #20: identifier "CAN_IFMCTL_DLC_MASK" is undefined
+"../can.c", line 205: error #20: identifier "CAN_IFMCTL_EOB" is undefined
+"../can.c", line 205: error #20: identifier "CAN_IFMCTL_TXRQST" is undefined
+"../can.c", line 206: error #20: identifier "CAN0_IF1MCTL_REG" is undefined
+"../can.c", line 209: error #20: identifier "CAN0_IF1DA1_REG" is undefined
+"../can.c", line 210: error #20: identifier "CAN0_IF1DA2_REG" is undefined
+"../can.c", line 211: error #20: identifier "CAN0_IF1DB1_REG" is undefined
+"../can.c", line 212: error #20: identifier "CAN0_IF1DB2_REG" is undefined
+"../can.c", line 215: error #20: identifier "CAN0_IF1CRQ_REG" is undefined
+"../can.c", line 239: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 239: error #20: identifier "CAN_IFCMSK_WRNRD" is undefined
+"../can.c", line 239: error #20: identifier "CAN_IFCMSK_ARB" is undefined
+"../can.c", line 239: error #20: identifier "CAN_IFCMSK_CONTROL" is undefined
+"../can.c", line 239: error #20: identifier "CAN_IFCMSK_MASK" is undefined
+"../can.c", line 242: error #20: identifier "CAN0_IF2MSK1_REG" is undefined
+"../can.c", line 243: error #20: identifier "CAN_IFMSK2_MDIR" is undefined
+"../can.c", line 244: error #20: identifier "CAN0_IF2MSK2_REG" is undefined
+"../can.c", line 247: error #20: identifier "CAN0_IF2ARB1_REG" is undefined
+"../can.c", line 248: error #20: identifier "CAN_IFARB2_MSGVAL" is undefined
+"../can.c", line 249: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 252: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 252: error #20: identifier "CAN_IFMCTL_EOB" is undefined
+"../can.c", line 252: error #20: identifier "CAN_IFMCTL_UMASK" is undefined
+"../can.c", line 252: error #20: identifier "CAN_IFMCTL_DLC_MASK" is undefined
+"../can.c", line 255: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 291: error #20: identifier "CAN0_IF2CMSK_REG" is undefined
+"../can.c", line 291: error #20: identifier "CAN_IFCMSK_ARB" is undefined
+"../can.c", line 291: error #20: identifier "CAN_IFCMSK_CONTROL" is undefined
+"../can.c", line 292: error #20: identifier "CAN_IFCMSK_DATAA" is undefined
+"../can.c", line 292: error #20: identifier "CAN_IFCMSK_DATAB" is undefined
+"../can.c", line 292: error #20: identifier "CAN_IFCMSK_CLRINTPND" is undefined
+"../can.c", line 295: error #20: identifier "CAN0_IF2CRQ_REG" is undefined
+"../can.c", line 301: error #20: identifier "CAN0_IF2ARB2_REG" is undefined
+"../can.c", line 303: error #20: identifier "CAN_IFARB2_XTD" is undefined
+"../can.c", line 307: error #20: identifier "CAN0_IF2ARB1_REG" is undefined
+"../can.c", line 317: error #20: identifier "CAN0_IF2MCTL_REG" is undefined
+"../can.c", line 317: error #20: identifier "CAN_IFMCTL_DLC_MASK" is undefined
+"../can.c", line 320: error #20: identifier "CAN0_IF2DA1_REG" is undefined
+"../can.c", line 322: error #20: identifier "CAN0_IF2DA2_REG" is undefined
+"../can.c", line 324: error #20: identifier "CAN0_IF2DB1_REG" is undefined
+"../can.c", line 326: error #20: identifier "CAN0_IF2DB2_REG" is undefined
+"../can.c", line 346: error #20: identifier "CAN0_NWDA1_REG" is undefined
+"../can.c", line 351: error #20: identifier "CAN0_NWDA2_REG" is undefined
+"../can.c", line 361: error #20: identifier "CAN0_STS_REG" is undefined
+"../can.c", line 370: error #20: identifier "CAN0_CTL_REG" is undefined
+"../can.c", line 370: error #20: identifier "CAN_CTL_INIT" is undefined
+69 errors detected in the compilation of "../can.c".
+gmake: *** [can.obj] Error 1
+Building file: "../obd.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="obd.d_raw"  "../obd.c"
+ 
+>> Compilation failure
+subdir_rules.mk:9: recipe for target 'obd.obj' failed
+"../obd.c", line 493: error #137: struct "<unnamed>" has no field "digit"
+At end of source: error #66: expected a ";"
+At end of source: error #68: expected a "}"
+"../obd.c", line 25: warning #179-D: variable "g_supportedPIDs_21_40" was declared but never referenced
+"../obd.c", line 26: warning #179-D: variable "g_supportedPIDs_41_60" was declared but never referenced
+"../obd.c", line 27: warning #552-D: variable "g_initialized" was set but never used
+"../obd.c", line 480: warning #179-D: function "OBD_ParseDTC" was declared but never referenced
+3 errors detected in the compilation of "../obd.c".
+gmake: *** [obd.obj] Error 1
+gmake: Target 'all' not remade because of errors.
+
+**** Build Finished ****
+
+**** Build of configuration Debug for project OBD-II_Diagnostics ****
+
+"C:\\ti\\ccs1281\\ccs\\utils\\bin\\gmake" -k -j 6 all -O 
+ 
+Building file: "../can.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="can.d_raw"  "../can.c"
+Finished building: "../can.c"
+ 
+Building file: "../obd.c"
+Invoking: Arm Compiler
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="Z:/OBD-II_Diagnostics" --include_path="C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="obd.d_raw"  "../obd.c"
+Finished building: "../obd.c"
+ 
+Building target: "OBD-II_Diagnostics.out"
+Invoking: Arm Linker
+"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"OBD-II_Diagnostics.map" --heap_size=0 --stack_size=512 -i"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/lib" -i"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="OBD-II_Diagnostics_linkInfo.xml" --rom_model -o "OBD-II_Diagnostics.out" "./can.obj" "./delay.obj" "./main.obj" "./obd.obj" "./tm4c123gh6pm_startup_ccs.obj" "../tm4c123gh6pm.cmd"  -llibc.a 
+<Linking>
+Finished building target: "OBD-II_Diagnostics.out"
+ 
+
+**** Build Finished ****
+
+**** Build of configuration Debug for project OBD-II_Diagnostics ****
+
+"C:\\ti\\ccs1281\\ccs\\utils\\bin\\gmake" -k -j 6 all -O 
+ 
+gmake[1]: 'OBD-II_Diagnostics.out' is up to date.
+
+**** Build Finished ****
