@@ -3,19 +3,13 @@
 
 #include "std_types.h"
 
-#define SW1_PIN     0x10
-#define SW1_PRESSED 0
-
+/* Button Functions for SW1 only */
 void Button_Init(void);
-uint8_t Button_Read(void);
-uint8_t Button_IsPressed(void);
-uint8_t Button_WasPressed(void);
-uint8_t Button_WasReleased(void);
-void Button_EnableInterrupt(void (*handler)(void));
-void Button_DisableInterrupt(void);
+boolean Button_IsPressed(void);
+boolean Button_WasPressed(void);
 
-#define SW1_READ()      Button_Read()
-#define SW1_PRESSED()   Button_IsPressed()
+/* Simple Macros for SW1 */
+#define SW1_PRESSED()     Button_IsPressed()
+#define SW1_WAS_PRESSED() Button_WasPressed()
 
-#endif
-
+#endif /* PUSHBUTTON_H */
