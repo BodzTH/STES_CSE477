@@ -1,5 +1,6 @@
 #include "leds.h"
 #include "gpio.h"
+#include "tm4c123gh6pm_registers.h"
 
 /* LED Pin Mapping */
 static const struct {
@@ -50,3 +51,4 @@ void LED_Toggle(uint8 color) {
         GPIO_TogglePin(LED_CONFIG[color].port, LED_CONFIG[color].pin);
     }
 }
+
