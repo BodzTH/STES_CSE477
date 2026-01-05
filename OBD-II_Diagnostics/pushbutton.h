@@ -1,7 +1,7 @@
 #ifndef PUSHBUTTON_H
 #define PUSHBUTTON_H
 
-#include <stdint.h>
+#include "std_types.h"
 
 #define SW1_PIN     0x10
 #define SW1_PRESSED 0
@@ -18,3 +18,4 @@ void Button_DisableInterrupt(void);
 #define SW1_PRESSED()   Button_IsPressed()
 
 #endif
+
