@@ -1,0 +1,77 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../tm4c123gh6pm.cmd 
+
+C_SRCS += \
+../delay.c \
+../gpio.c \
+../led.c \
+../main.c \
+../mcp2515.c \
+../obd.c \
+../pushbutton.c \
+../spi.c \
+../tm4c123gh6pm_startup_ccs.c 
+
+C_DEPS += \
+./delay.d \
+./gpio.d \
+./led.d \
+./main.d \
+./mcp2515.d \
+./obd.d \
+./pushbutton.d \
+./spi.d \
+./tm4c123gh6pm_startup_ccs.d 
+
+OBJS += \
+./delay.obj \
+./gpio.obj \
+./led.obj \
+./main.obj \
+./mcp2515.obj \
+./obd.obj \
+./pushbutton.obj \
+./spi.obj \
+./tm4c123gh6pm_startup_ccs.obj 
+
+OBJS__QUOTED += \
+"delay.obj" \
+"gpio.obj" \
+"led.obj" \
+"main.obj" \
+"mcp2515.obj" \
+"obd.obj" \
+"pushbutton.obj" \
+"spi.obj" \
+"tm4c123gh6pm_startup_ccs.obj" 
+
+C_DEPS__QUOTED += \
+"delay.d" \
+"gpio.d" \
+"led.d" \
+"main.d" \
+"mcp2515.d" \
+"obd.d" \
+"pushbutton.d" \
+"spi.d" \
+"tm4c123gh6pm_startup_ccs.d" 
+
+C_SRCS__QUOTED += \
+"../delay.c" \
+"../gpio.c" \
+"../led.c" \
+"../main.c" \
+"../mcp2515.c" \
+"../obd.c" \
+"../pushbutton.c" \
+"../spi.c" \
+"../tm4c123gh6pm_startup_ccs.c" 
+
+

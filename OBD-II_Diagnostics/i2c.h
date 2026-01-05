@@ -1,91 +1,63 @@
 /******************************************************************************
-*
-* Module: I2C - Inter-Integrated Circuit Driver
-*
-* File Name: i2c.h
-*
-* Description: Header file for I2C driver for TM4C123GH6PM
-*
-* Target: TM4C123GH6PM (Tiva C LaunchPad)
-*
-*******************************************************************************/
+ *
+ * Module: I2C
+ *
+ * File Name: i2c.h
+ *
+ * Description: Header file for I2C1 driver (PA6/PA7)
+ * Includes Register Definitions for I2C1 and Port A ODR
+ *
+ *******************************************************************************/
 
 #ifndef I2C_H_
 #define I2C_H_
 
-#include <stdint.h>
 #include "std_types.h"
 
 /*******************************************************************************
- *                                Definitions                                   *
+ * Register Definitions (I2C1 & ODR)                      *
  *******************************************************************************/
 
-/* I2C Module Selection */
-#define I2C_MODULE_0            0
-#define I2C_MODULE_1            1
-#define I2C_MODULE_2            2
-#define I2C_MODULE_3            3
+/* Port A Open Drain Register (Missing from main register file) */
+#ifndef GPIO_PORTA_ODR_REG
+#define GPIO_PORTA_ODR_REG      (*((volatile uint32 *)0x4000450C))
+#endif
 
-/* Default I2C Module to use */
-#define I2C_DEFAULT_MODULE      I2C_MODULE_0
+/* I2C1 Base Registers (Base: 0x4002.1000) */
+#define I2C1_MSA_REG            (*((volatile uint32 *)0x40021000))
+#define I2C1_MCS_REG            (*((volatile uint32 *)0x40021004))
+#define I2C1_MDR_REG            (*((volatile uint32 *)0x40021008))
+#define I2C1_MTPR_REG           (*((volatile uint32 *)0x4002100C))
+#define I2C1_MCR_REG            (*((volatile uint32 *)0x40021020))
 
-/* I2C Speed Modes */
-#define I2C_SPEED_STANDARD      100000      /* 100 kHz */
-#define I2C_SPEED_FAST          400000      /* 400 kHz */
-#define I2C_SPEED_FAST_PLUS     1000000     /* 1 MHz */
-
-/* I2C Master Control/Status Register Bits */
-#define I2C_MCS_BUSY            (1 << 0)    /* I2C Busy */
-#define I2C_MCS_ERROR           (1 << 1)    /* Error */
-#define I2C_MCS_ADRACK          (1 << 2)    /* Acknowledge Address */
-#define I2C_MCS_DATACK          (1 << 3)    /* Acknowledge Data */
-#define I2C_MCS_ARBLST          (1 << 4)    /* Arbitration Lost */
-#define I2C_MCS_IDLE            (1 << 5)    /* I2C Idle */
-#define I2C_MCS_BUSBSY          (1 << 6)    /* Bus Busy */
-
-/* I2C Master Control Register Commands */
-#define I2C_MCS_RUN             (1 << 0)    /* I2C Master Enable */
-#define I2C_MCS_START           (1 << 1)    /* Generate START */
-#define I2C_MCS_STOP            (1 << 2)    /* Generate STOP */
-#define I2C_MCS_ACK             (1 << 3)    /* Data Acknowledge Enable */
-#define I2C_MCS_HS              (1 << 4)    /* High-Speed Enable */
-
-/* I2C Error Codes */
-typedef enum {
-    I2C_OK = 0,
-    I2C_ERROR_ADDRESS_NACK,
-    I2C_ERROR_DATA_NACK,
-    I2C_ERROR_ARB_LOST,
-    I2C_ERROR_TIMEOUT,
-    I2C_ERROR_BUSY
-} I2C_Error;
+/* I2C Control Bits */
+#define I2C_MCS_RUN             0x00000001  /* I2C Master Enable */
+#define I2C_MCS_START           0x00000002  /* Generate START */
+#define I2C_MCS_STOP            0x00000004  /* Generate STOP */
+#define I2C_MCS_ACK             0x00000008  /* Data Acknowledge Enable */
+#define I2C_MCS_BUSY            0x00000001  /* I2C Busy */
+#define I2C_MCS_ERROR           0x00000002  /* Error */
 
 /*******************************************************************************
- *                              Function Prototypes                             *
+ * Definitions                                   *
+ *******************************************************************************/
+#define I2C_BAUDRATE_100K    100000
+#define I2C_BAUDRATE_400K    400000
+
+/*******************************************************************************
+ * Function Prototypes                               *
  *******************************************************************************/
 
-/* Initialization Functions */
-void I2C_Init(void);
-void I2C_InitModule(uint8 module, uint32 speed);
+/* Initialize I2C1 module on PA6 (SCL) and PA7 (SDA) */
+void I2C1_Init(uint32 baudRate);
 
-/* Single Byte Operations */
-I2C_Error I2C_WriteByte(uint8 slaveAddr, uint8 data);
-I2C_Error I2C_ReadByte(uint8 slaveAddr, uint8* data);
+/* Write a single byte to a specific slave address */
+void I2C1_WriteByte(uint8 slaveAddr, uint8 data);
 
-/* Multi-Byte Operations */
-I2C_Error I2C_WriteMultiple(uint8 slaveAddr, uint8* data, uint8 length);
-I2C_Error I2C_ReadMultiple(uint8 slaveAddr, uint8* data, uint8 length);
+/* Read a single byte from a specific slave address */
+uint8 I2C1_ReadByte(uint8 slaveAddr);
 
-/* Register Operations */
-I2C_Error I2C_WriteRegister(uint8 slaveAddr, uint8 regAddr, uint8 data);
-I2C_Error I2C_ReadRegister(uint8 slaveAddr, uint8 regAddr, uint8* data);
-I2C_Error I2C_WriteRegisterMultiple(uint8 slaveAddr, uint8 regAddr, uint8* data, uint8 length);
-I2C_Error I2C_ReadRegisterMultiple(uint8 slaveAddr, uint8 regAddr, uint8* data, uint8 length);
-
-/* Utility Functions */
-boolean I2C_IsBusy(void);
-I2C_Error I2C_WaitUntilReady(void);
-boolean I2C_ScanDevice(uint8 slaveAddr);
-void I2C_ScanBus(uint8* foundDevices, uint8* count);
+/* Write multiple bytes (used for LCD commands) */
+void I2C1_WritePacket(uint8 slaveAddr, uint8 *data, uint8 length);
 
 #endif /* I2C_H_ */

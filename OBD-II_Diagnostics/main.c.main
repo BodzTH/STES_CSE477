@@ -1,0 +1,219 @@
+#include "tm4c123gh6pm_registers.h"
+#include "std_types.h"
+#include "lcd.h"
+#include "obd.h"
+#include "pushbutton.h"
+#include "led.h"
+#include "delay.h"
+
+/* Application States */
+typedef enum {
+    STATE_SHOW_RPM,
+    STATE_SHOW_SPEED,
+    STATE_SHOW_COOLANT,
+    STATE_SHOW_VOLTAGE,
+    STATE_MAX_STATES
+} AppState_t;
+
+/* --- Helper Functions --- */
+
+/* Helper to convert Integer to String and print to LCD */
+void LCD_PrintInt(sint32 num)
+{
+    char buffer[12];
+    char *ptr = buffer;
+    uint32 u_val;
+    
+    if (num < 0) {
+        LCD_SendData('-');
+        u_val = (uint32)(-num);
+    } else {
+        u_val = (uint32)num;
+    }
+    
+    if (u_val == 0) {
+        LCD_SendData('0');
+        return;
+    }
+    
+    while (u_val > 0) {
+        *ptr++ = (char)((u_val % 10) + '0');
+        u_val /= 10;
+    }
+    
+    while (ptr > buffer) {
+        LCD_SendData(*(--ptr));
+    }
+}
+
+/* Helper to convert Float to String (1 decimal place) */
+void LCD_PrintFloat(float32 num)
+{
+    sint32 intPart = (sint32)num;
+    sint32 decPart = (sint32)((num - intPart) * 10);
+    
+    if(decPart < 0) decPart = -decPart;
+
+    LCD_PrintInt(intPart);
+    LCD_SendData('.');
+    LCD_PrintInt(decPart);
+}
+
+/* --- Main Application --- */
+
+int main(void)
+{
+    AppState_t currentState = STATE_SHOW_RPM;
+    uint8 status;
+    
+    /* Data Variables */
+    uint16 rpmVal = 0;
+    uint8  speedVal = 0;
+    sint8  tempVal = 0;
+    float32 voltVal = 0.0f;
+    
+    /* Timing & Input Variables */
+    uint8 updateCounter = 0;
+    boolean btnPrevState = FALSE;
+    boolean btnCurrState = FALSE;
+    boolean obdConnected = FALSE;
+    
+    /* 1. Hardware Initialization */
+    LCD_Init();       
+    Button_Init();    /* SW1 on PF4 */
+    LED_Init();       /* RGB LEDs */
+    
+    /* 2. Welcome Screen */
+    LCD_Clear(); 
+    LCD_SetCursor(0, 0);
+    LCD_WriteString("OBD-II System");
+    LCD_SetCursor(1, 0);
+    LCD_WriteString("Connecting...");
+    LED_On(LED_RED); /* Red indicates not connected yet */
+    
+    /* 3. Connection Loop (Auto-Retry) */
+    /* This allows you to plug it in even if the car is off, 
+       and it will connect once the ECU wakes up */
+    while(obdConnected == FALSE)
+    {
+        if(OBD_Init() == OBD_STATUS_OK)
+        {
+            obdConnected = TRUE;
+            LED_Off(LED_RED);
+            LED_On(LED_GREEN); /* Green indicates Success */
+            
+            LCD_Clear();
+            LCD_SetCursor(0, 0);
+            LCD_WriteString("OBD Connected!");
+            Delay_MS(1000);
+        }
+        else
+        {
+            /* Retry every 1 second */
+            LCD_SetCursor(1, 0);
+            LCD_WriteString("Retrying...     ");
+            LED_Toggle(LED_RED);
+            Delay_MS(1000);
+        }
+    }
+    
+    /* Prepare First Screen */
+    LCD_Clear();
+    LCD_SetCursor(0, 0);
+    LCD_WriteString("Engine RPM:");
+    
+    /* 4. Main Loop */
+    while(1)
+    {
+        /* A. FAST BUTTON POLLING (Check PF4) */
+        btnCurrState = Button_IsPressed();
+        
+        /* Detect Rising Edge (Press) */
+        if (btnCurrState == TRUE && btnPrevState == FALSE)
+        {
+            /* Visual Feedback */
+            LED_On(LED_BLUE);
+            
+            /* Change State */
+            currentState++;
+            if(currentState >= STATE_MAX_STATES)
+            {
+                currentState = STATE_SHOW_RPM;
+            }
+            
+            /* Update Title Immediately */
+            LCD_Clear();
+            LCD_SetCursor(0, 0);
+            switch(currentState)
+            {
+                case STATE_SHOW_RPM:     LCD_WriteString("Engine RPM:"); break;
+                case STATE_SHOW_SPEED:   LCD_WriteString("Vehicle Speed:"); break;
+                case STATE_SHOW_COOLANT: LCD_WriteString("Coolant Temp:"); break;
+                case STATE_SHOW_VOLTAGE: LCD_WriteString("Battery Volt:"); break;
+            }
+            
+            /* Reset counter to force immediate data update next loop */
+            updateCounter = 100; 
+        }
+        else if (btnCurrState == FALSE && btnPrevState == TRUE)
+        {
+            LED_Off(LED_BLUE);
+        }
+        btnPrevState = btnCurrState;
+        
+        /* B. DATA UPDATE (Slower Interval) */
+        /* Querying OBD too fast can flood the bus. 100-200ms is standard. */
+        updateCounter++;
+        if (updateCounter > 15) /* 15 * 10ms = 150ms interval */
+        {
+            updateCounter = 0;
+            LCD_SetCursor(1, 0);
+            
+            switch(currentState)
+            {
+                case STATE_SHOW_RPM:
+                    status = OBD_GetEngineRPM(&rpmVal);
+                    if(status == OBD_STATUS_OK) {
+                        LCD_PrintInt((sint32)rpmVal);
+                        LCD_WriteString(" rpm     "); 
+                    } else {
+                        LCD_WriteString("No Data...    ");
+                    }
+                    break;
+                    
+                case STATE_SHOW_SPEED:
+                    status = OBD_GetVehicleSpeed(&speedVal);
+                    if(status == OBD_STATUS_OK) {
+                        LCD_PrintInt((sint32)speedVal);
+                        LCD_WriteString(" km/h    ");
+                    } else {
+                        LCD_WriteString("No Data...    ");
+                    }
+                    break;
+                    
+                case STATE_SHOW_COOLANT:
+                    status = OBD_GetCoolantTemp(&tempVal);
+                    if(status == OBD_STATUS_OK) {
+                        LCD_PrintInt((sint32)tempVal);
+                        LCD_WriteString(" C       ");
+                    } else {
+                        LCD_WriteString("No Data...    ");
+                    }
+                    break;
+                    
+                case STATE_SHOW_VOLTAGE:
+                    status = OBD_GetBatteryVoltage(&voltVal);
+                    if(status == OBD_STATUS_OK) {
+                        LCD_PrintFloat(voltVal);
+                        LCD_WriteString(" V       ");
+                    } else {
+                        LCD_WriteString("No Data...    ");
+                    }
+                    break;
+            }
+        }
+        
+        /* C. Short Delay Loop */
+        Delay_MS(10);
+    }
+}

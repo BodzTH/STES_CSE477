@@ -1,17 +1,17 @@
 ******************************************************************************
                   TI ARM Linker PC v20.2.7                     
 ******************************************************************************
->> Linked Mon Jan  5 03:54:46 2026
+>> Linked Mon Jan  5 14:17:03 2026
 
 OUTPUT FILE NAME:   <OBD-II_Diagnostics.out>
-ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 0000026d
+ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00000fb5
 
 
 MEMORY CONFIGURATION
 
          name            origin    length      used     unused   attr    fill
 ----------------------  --------  ---------  --------  --------  ----  --------
-  FLASH                 00000000   00040000  000002ae  0003fd52  R  X
+  FLASH                 00000000   00040000  0000101d  0003efe3  R  X
   SRAM                  20000000   00008000  00000200  00007e00  RW X
 
 
@@ -19,9 +19,10 @@ SEGMENT ALLOCATION MAP
 
 run origin  load origin   length   init length attrs members
 ----------  ----------- ---------- ----------- ----- -------
-00000000    00000000    000002ae   000002ae    r-x
+00000000    00000000    0000101d   0000101d    r-x
   00000000    00000000    0000026c   0000026c    r-- .intvecs
-  0000026c    0000026c    00000042   00000042    r-x .text
+  0000026c    0000026c    00000da0   00000da0    r-x .text
+  0000100c    0000100c    00000011   00000011    r-- .const
 20000000    20000000    00000200   00000000    rw-
   20000000    20000000    00000200   00000000    rw- .stack
 
@@ -34,12 +35,24 @@ section   page    origin      length       input sections
 .intvecs   0    00000000    0000026c     
                   00000000    0000026c     tm4c123gh6pm_startup_ccs.obj (.intvecs)
 
-.text      0    0000026c    00000042     
-                  0000026c    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
-                  00000298    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
-                  000002a4    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
-                  000002a8    00000004                                   : exit.c.obj (.text:abort:abort)
-                  000002ac    00000002     main.obj (.text)
+.text      0    0000026c    00000da0     
+                  0000026c    000002ac     mcp2515.obj (.text)
+                  00000518    00000220     gpio.obj (.text)
+                  00000738    000001c0     spi.obj (.text)
+                  000008f8    0000018c     i2c.obj (.text)
+                  00000a84    00000180     led.obj (.text)
+                  00000c04    0000017c     lcd.obj (.text)
+                  00000d80    00000158     main.obj (.text)
+                  00000ed8    0000009c     rtsv7M4_T_le_v4SPD16_eabi.lib : memcpy_t2.asm.obj (.text)
+                  00000f74    00000040     delay.obj (.text)
+                  00000fb4    0000002c     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noinit_noargs:_c_int00_noinit_noargs)
+                  00000fe0    00000018                                   : ll_mul_t2.asm.obj (.text)
+                  00000ff8    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
+                  00001004    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  00001008    00000004                                   : exit.c.obj (.text:abort:abort)
+
+.const     0    0000100c    00000011     
+                  0000100c    00000011     main.obj (.const:.string:$P$T0$1)
 
 .cinit     0    00000000    00000000     UNINITIALIZED
 
@@ -58,74 +71,169 @@ MODULE SUMMARY
        Module                         code   ro data   rw data
        ------                         ----   -------   -------
     .\
+       mcp2515.obj                    684    0         0      
        tm4c123gh6pm_startup_ccs.obj   12     620       0      
-       main.obj                       2      0         0      
+       gpio.obj                       544    0         0      
+       spi.obj                        448    0         0      
+       i2c.obj                        396    0         0      
+       led.obj                        384    0         0      
+       lcd.obj                        380    0         0      
+       main.obj                       344    17        0      
+       delay.obj                      64     0         0      
     +--+------------------------------+------+---------+---------+
-       Total:                         14     620       0      
+       Total:                         3256   637       0      
                                                               
     C:\ti\ccs1281\ccs\tools\compiler\ti-cgt-arm_20.2.7.LTS\lib\rtsv7M4_T_le_v4SPD16_eabi.lib
+       memcpy_t2.asm.obj              156    0         0      
        boot_cortex_m.c.obj            44     0         0      
+       ll_mul_t2.asm.obj              24     0         0      
        exit.c.obj                     4      0         0      
        pre_init.c.obj                 4      0         0      
     +--+------------------------------+------+---------+---------+
-       Total:                         52     0         0      
+       Total:                         232    0         0      
                                                               
        Stack:                         0      0         512    
     +--+------------------------------+------+---------+---------+
-       Grand Total:                   66     620       512    
+       Grand Total:                   3488   637       512    
 
 
 GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
 
-address   name                   
--------   ----                   
-000002a9  C$$EXIT                
-00000299  ResetISR               
-20000200  __STACK_END            
-00000200  __STACK_SIZE           
-20000200  __STACK_TOP            
-ffffffff  __TI_pprof_out_hndl    
-ffffffff  __TI_prof_data_size    
-ffffffff  __TI_prof_data_start   
-00000000  __TI_static_base__     
-ffffffff  __binit__              
-ffffffff  __c_args__             
-UNDEFED   __mpu_init             
-20000000  __stack                
-20000000  __start___llvm_prf_cnts
-20000000  __stop___llvm_prf_cnts 
-0000026d  _c_int00_noinit_noargs 
-000002a5  _system_pre_init       
-000002a9  abort                  
-ffffffff  binit                  
-00000000  g_pfnVectors           
-000002ad  main                   
+address   name                      
+-------   ----                      
+00001009  C$$EXIT                   
+00000f75  Delay_MS                  
+000005f1  GPIO_InitPin              
+0000069f  GPIO_ReadPin              
+000006c7  GPIO_TogglePin            
+00000663  GPIO_WritePin             
+000008f9  I2C1_Init                 
+00000999  I2C1_ReadByte             
+00000971  I2C1_WriteByte            
+000009bf  I2C1_WritePacket          
+00000d1d  LCD_Clear                 
+00000cb5  LCD_Init                  
+00000d81  LCD_PrintHex              
+00000c91  LCD_SendCommand           
+00000ca3  LCD_SendData              
+00000d2f  LCD_SetCursor             
+00000d5f  LCD_WriteString           
+00000a93  LED_Init                  
+00000b35  LED_Off                   
+00000ad1  LED_On                    
+00000b99  LED_Toggle                
+000002db  MCP2515_BitModify         
+00000501  MCP2515_ConfigureFilter   
+000004ed  MCP2515_ConfigureMask     
+00000311  MCP2515_Init              
+00000515  MCP2515_MessageAvailable  
+00000287  MCP2515_ReadRegister      
+0000041d  MCP2515_Receive           
+000004bd  MCP2515_ReceiveWithTimeout
+0000026d  MCP2515_Reset             
+00000387  MCP2515_Transmit          
+000002b1  MCP2515_WriteRegister     
+00000ff9  ResetISR                  
+0000079d  SPI_CS_Assert             
+000007a9  SPI_CS_Deassert           
+00000739  SPI_Init                  
+0000086d  SPI_Read                  
+000007b5  SPI_Transfer              
+00000877  SPI_TransferBuffer        
+0000085d  SPI_Write                 
+20000200  __STACK_END               
+00000200  __STACK_SIZE              
+20000200  __STACK_TOP               
+ffffffff  __TI_pprof_out_hndl       
+ffffffff  __TI_prof_data_size       
+ffffffff  __TI_prof_data_start      
+00000000  __TI_static_base__        
+00000fe1  __aeabi_lmul              
+00000ed9  __aeabi_memcpy            
+00000ed9  __aeabi_memcpy4           
+00000ed9  __aeabi_memcpy8           
+ffffffff  __binit__                 
+ffffffff  __c_args__                
+UNDEFED   __mpu_init                
+20000000  __stack                   
+20000000  __start___llvm_prf_cnts   
+20000000  __stop___llvm_prf_cnts    
+00000fb5  _c_int00_noinit_noargs    
+00001005  _system_pre_init          
+00001009  abort                     
+ffffffff  binit                     
+00000000  g_pfnVectors              
+00000db9  main                      
+00000ed9  memcpy                    
 
 
 GLOBAL SYMBOLS: SORTED BY Symbol Address 
 
-address   name                   
--------   ----                   
-00000000  __TI_static_base__     
-00000000  g_pfnVectors           
-00000200  __STACK_SIZE           
-0000026d  _c_int00_noinit_noargs 
-00000299  ResetISR               
-000002a5  _system_pre_init       
-000002a9  C$$EXIT                
-000002a9  abort                  
-000002ad  main                   
-20000000  __stack                
-20000000  __start___llvm_prf_cnts
-20000000  __stop___llvm_prf_cnts 
-20000200  __STACK_END            
-20000200  __STACK_TOP            
-ffffffff  __TI_pprof_out_hndl    
-ffffffff  __TI_prof_data_size    
-ffffffff  __TI_prof_data_start   
-ffffffff  __binit__              
-ffffffff  __c_args__             
-ffffffff  binit                  
-UNDEFED   __mpu_init             
+address   name                      
+-------   ----                      
+00000000  __TI_static_base__        
+00000000  g_pfnVectors              
+00000200  __STACK_SIZE              
+0000026d  MCP2515_Reset             
+00000287  MCP2515_ReadRegister      
+000002b1  MCP2515_WriteRegister     
+000002db  MCP2515_BitModify         
+00000311  MCP2515_Init              
+00000387  MCP2515_Transmit          
+0000041d  MCP2515_Receive           
+000004bd  MCP2515_ReceiveWithTimeout
+000004ed  MCP2515_ConfigureMask     
+00000501  MCP2515_ConfigureFilter   
+00000515  MCP2515_MessageAvailable  
+000005f1  GPIO_InitPin              
+00000663  GPIO_WritePin             
+0000069f  GPIO_ReadPin              
+000006c7  GPIO_TogglePin            
+00000739  SPI_Init                  
+0000079d  SPI_CS_Assert             
+000007a9  SPI_CS_Deassert           
+000007b5  SPI_Transfer              
+0000085d  SPI_Write                 
+0000086d  SPI_Read                  
+00000877  SPI_TransferBuffer        
+000008f9  I2C1_Init                 
+00000971  I2C1_WriteByte            
+00000999  I2C1_ReadByte             
+000009bf  I2C1_WritePacket          
+00000a93  LED_Init                  
+00000ad1  LED_On                    
+00000b35  LED_Off                   
+00000b99  LED_Toggle                
+00000c91  LCD_SendCommand           
+00000ca3  LCD_SendData              
+00000cb5  LCD_Init                  
+00000d1d  LCD_Clear                 
+00000d2f  LCD_SetCursor             
+00000d5f  LCD_WriteString           
+00000d81  LCD_PrintHex              
+00000db9  main                      
+00000ed9  __aeabi_memcpy            
+00000ed9  __aeabi_memcpy4           
+00000ed9  __aeabi_memcpy8           
+00000ed9  memcpy                    
+00000f75  Delay_MS                  
+00000fb5  _c_int00_noinit_noargs    
+00000fe1  __aeabi_lmul              
+00000ff9  ResetISR                  
+00001005  _system_pre_init          
+00001009  C$$EXIT                   
+00001009  abort                     
+20000000  __stack                   
+20000000  __start___llvm_prf_cnts   
+20000000  __stop___llvm_prf_cnts    
+20000200  __STACK_END               
+20000200  __STACK_TOP               
+ffffffff  __TI_pprof_out_hndl       
+ffffffff  __TI_prof_data_size       
+ffffffff  __TI_prof_data_start      
+ffffffff  __binit__                 
+ffffffff  __c_args__                
+ffffffff  binit                     
+UNDEFED   __mpu_init                
 
-[21 symbols]
+[64 symbols]

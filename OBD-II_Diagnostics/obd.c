@@ -1,732 +1,88 @@
-/******************************************************************************
- *
- * Module: OBD - On-Board Diagnostics II Driver
- *
- * File Name: obd.c
- *
- * Description: Source file for OBD-II Protocol Driver
- * Implements SAE J1979 (ISO 15031-5) standard
- * For automotive diagnostics via MCP2515 CAN Controller
- *
- * Author: BodzTH
- *
- *******************************************************************************/
-
 #include "obd.h"
 #include "mcp2515.h"
 #include "delay.h"
 
-/*******************************************************************************
- * Private Variables                                   *
- *******************************************************************************/
-
-/* Cached supported PIDs bitmaps */
-static uint32 g_supportedPIDs_01_20 = 0;
-static uint32 g_supportedPIDs_21_40 = 0;
-static uint32 g_supportedPIDs_41_60 = 0;
-
-/*******************************************************************************
- * Private Function Prototypes                         *
- *******************************************************************************/
-
-static uint8 OBD_SendRequest(uint8 mode, uint8 pid);
-static uint8 OBD_ReceiveResponse(OBD_Response *response);
-static void OBD_ParseDTC(uint8 highByte, uint8 lowByte, OBD_DTC *dtc);
-
-/*******************************************************************************
- * Function Definitions                                *
- *******************************************************************************/
-
-/*
- * Description: Initialize OBD-II communication
- */
 uint8 OBD_Init(void)
 {
-    MCP2515_Config canConfig;
-    uint8 status;
+    MCP2515_Config cfg;
+    cfg.baudRate = MCP2515_BAUD_500KBPS;
     
-    /* Configure CAN for OBD-II (500 kbps standard) */
-    canConfig.baudRate = MCP2515_BAUD_500KBPS;
-    canConfig.loopbackMode = FALSE;
-    
-    /* Initialize MCP2515 driver */
-    status = MCP2515_Init(&canConfig);
-    if (status != MCP2515_STATUS_OK)
+    if(MCP2515_Init(&cfg) != MCP2515_STATUS_OK)
     {
         return OBD_STATUS_ERROR;
     }
-    
-    /* Configure receive filters for OBD-II ECU responses (0x7E8 - 0x7EF) */
-    /* We need to set masks and filters to accept this range.
-     * Mask 0x7F8 with Filter 0x7E8 will accept 0x7E8 through 0x7EF.
-     */
-    
-    /* Configure Masks 0 and 1 */
-    MCP2515_ConfigureMask(0, 0x7F8, MCP2515_FRAME_STD);
-    MCP2515_ConfigureMask(1, 0x7F8, MCP2515_FRAME_STD);
-    
-    /* Configure Filters to look for 0x7E8 base */
-    MCP2515_ConfigureFilter(0, OBD_RESPONSE_ID_MIN, MCP2515_FRAME_STD);
-    MCP2515_ConfigureFilter(1, OBD_RESPONSE_ID_MIN, MCP2515_FRAME_STD);
-    MCP2515_ConfigureFilter(2, OBD_RESPONSE_ID_MIN, MCP2515_FRAME_STD);
-    MCP2515_ConfigureFilter(3, OBD_RESPONSE_ID_MIN, MCP2515_FRAME_STD);
-    MCP2515_ConfigureFilter(4, OBD_RESPONSE_ID_MIN, MCP2515_FRAME_STD);
-    MCP2515_ConfigureFilter(5, OBD_RESPONSE_ID_MIN, MCP2515_FRAME_STD);
-    
-    /* Small delay for initialization */
-    Delay_MS(10);
-    
-    /* Read supported PIDs for caching */
-    OBD_GetSupportedPIDs(OBD_MODE_CURRENT_DATA, OBD_PID_SUPPORTED_PIDS_01_20, &g_supportedPIDs_01_20);
-    
     return OBD_STATUS_OK;
 }
 
-/*
- * Description: Send OBD-II request frame
- */
-static uint8 OBD_SendRequest(uint8 mode, uint8 pid)
+static uint8 OBD_Request(uint8 pid, uint8 *dataOut, uint8 len)
 {
-    MCP2515_Message txMsg;
-    
-    /* Configure CAN message for OBD-II request */
-    txMsg.id = OBD_REQUEST_ID;    /* Functional address 0x7DF */
-    txMsg.idType = MCP2515_FRAME_STD;
-    txMsg.dlc = 8;
-    
-    /* OBD-II single frame format */
-    txMsg.data[0] = 0x02;           /* Number of additional bytes */
-    txMsg.data[1] = mode;           /* Service mode */
-    txMsg.data[2] = pid;            /* Parameter ID */
-    txMsg.data[3] = 0x00;           /* Padding */
-    txMsg.data[4] = 0x00;           /* Padding */
-    txMsg.data[5] = 0x00;           /* Padding */
-    txMsg.data[6] = 0x00;           /* Padding */
-    txMsg.data[7] = 0x00;           /* Padding */
-    
-    if (MCP2515_Transmit(&txMsg) != MCP2515_STATUS_OK)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    return OBD_STATUS_OK;
-}
-
-/*
- * Description: Receive OBD-II response frame
- */
-static uint8 OBD_ReceiveResponse(OBD_Response *response)
-{
-    MCP2515_Message rxMsg;
-    uint8 status;
-    uint8 frameLength;
-    uint8 i;
-    
-    /* Receive CAN message with timeout */
-    status = MCP2515_ReceiveWithTimeout(&rxMsg, OBD_RESPONSE_TIMEOUT);
-    if (status != MCP2515_STATUS_OK)
-    {
-        return OBD_STATUS_TIMEOUT;
-    }
-    
-    /* Verify response ID is in valid range */
-    if (rxMsg.id < OBD_RESPONSE_ID_MIN || rxMsg.id > OBD_RESPONSE_ID_MAX)
-    {
-        return OBD_STATUS_INVALID_DATA;
-    }
-    
-    /* Parse single frame response */
-    frameLength = rxMsg.data[0] & 0x0F;
-    
-    if (frameLength < 2)
-    {
-        return OBD_STATUS_INVALID_DATA;
-    }
-    
-    /* Extract response data */
-    response->mode = rxMsg.data[1];
-    response->pid = rxMsg.data[2];
-    response->dataLength = frameLength - 2;
-    
-    /* Copy data bytes */
-    for (i = 0; i < response->dataLength && i < 5; i++)
-    {
-        response->data[i] = rxMsg.data[3 + i];
-    }
-    
-    /* Verify response mode (should be request mode + 0x40) */
-    if ((response->mode & 0x40) == 0)
-    {
-        return OBD_STATUS_INVALID_DATA;
-    }
-    
-    return OBD_STATUS_OK;
-}
-
-/*
- * Description: Send OBD-II request and receive response
- */
-uint8 OBD_Request(uint8 mode, uint8 pid, OBD_Response *response)
-{
+    MCP2515_Message msg;
     uint8 status;
     
-    if (response == NULL_PTR)
+    /* 1. Send Request */
+    msg.id = OBD_REQUEST_ID;
+    msg.dlc = 8;
+    msg.data[0] = 0x02; /* Length */
+    msg.data[1] = 0x01; /* Mode 1 */
+    msg.data[2] = pid;
+    msg.data[3] = 0x55; /* Padding */
+    msg.data[4] = 0x55;
+    msg.data[5] = 0x55;
+    msg.data[6] = 0x55;
+    msg.data[7] = 0x55;
+    
+    if(MCP2515_Transmit(&msg) != MCP2515_STATUS_OK) return OBD_STATUS_ERROR;
+    
+    /* 2. Wait for Response */
+    status = MCP2515_ReceiveWithTimeout(&msg, 100); /* 100ms Timeout */
+    
+    if(status == MCP2515_STATUS_OK)
     {
-        return OBD_STATUS_ERROR;
+        /* Check if it is a response to our Mode 1 request */
+        if(msg.data[1] == 0x41 && msg.data[2] == pid)
+        {
+            uint8 i;
+            for(i=0; i<len; i++) dataOut[i] = msg.data[3+i];
+            return OBD_STATUS_OK;
+        }
     }
-    
-    /* Send request */
-    status = OBD_SendRequest(mode, pid);
-    if (status != OBD_STATUS_OK)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    /* Receive response */
-    status = OBD_ReceiveResponse(response);
-    
-    return status;
+    return OBD_STATUS_TIMEOUT;
 }
 
-/*
- * Description: Get engine RPM
- * Formula: ((A*256)+B)/4
- */
 uint8 OBD_GetEngineRPM(uint16 *rpm)
 {
-    OBD_Response response;
-    uint8 status;
-    
-    if (rpm == NULL_PTR)
+    uint8 data[2];
+    if(OBD_Request(OBD_PID_RPM, data, 2) == OBD_STATUS_OK)
     {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_ENGINE_RPM, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 2)
-    {
-        *rpm = ((uint16)response.data[0] * 256 + response.data[1]) / 4;
+        *rpm = ((uint16)data[0] * 256 + data[1]) / 4;
         return OBD_STATUS_OK;
     }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get vehicle speed in km/h
- * Formula:  A (direct value)
- */
-uint8 OBD_GetVehicleSpeed(uint8 *speed)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (speed == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_VEHICLE_SPEED, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 1)
-    {
-        *speed = response.data[0];
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get engine coolant temperature in Celsius
- * Formula: A - 40
- */
-uint8 OBD_GetCoolantTemp(sint8 *temp)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (temp == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_COOLANT_TEMP, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 1)
-    {
-        *temp = (sint8)(response.data[0] - 40);
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get intake air temperature in Celsius
- * Formula: A - 40
- */
-uint8 OBD_GetIntakeTemp(sint8 *temp)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (temp == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_INTAKE_TEMP, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 1)
-    {
-        *temp = (sint8)(response.data[0] - 40);
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get calculated engine load percentage
- * Formula: A * 100 / 255
- */
-uint8 OBD_GetEngineLoad(uint8 *load)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (load == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_ENGINE_LOAD, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 1)
-    {
-        *load = (uint8)(((uint16)response.data[0] * 100) / 255);
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get throttle position percentage
- * Formula: A * 100 / 255
- */
-uint8 OBD_GetThrottlePosition(uint8 *position)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (position == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_THROTTLE_POS, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 1)
-    {
-        *position = (uint8)(((uint16)response.data[0] * 100) / 255);
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get fuel level percentage
- * Formula: A * 100 / 255
- */
-uint8 OBD_GetFuelLevel(uint8 *level)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (level == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_FUEL_LEVEL, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 1)
-    {
-        *level = (uint8)(((uint16)response.data[0] * 100) / 255);
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get control module voltage
- * Formula: ((A*256)+B) / 1000
- */
-uint8 OBD_GetBatteryVoltage(float32 *voltage)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (voltage == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_CONTROL_MODULE_VOLT, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 2)
-    {
-        *voltage = ((float32)response.data[0] * 256 + response.data[1]) / 1000.0f;
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get MAF air flow rate
- * Formula: ((A*256)+B) / 100
- * Returns: grams/sec * 100 (to avoid floating point)
- */
-uint8 OBD_GetMAFRate(uint16 *rate)
-{
-    OBD_Response response;
-    uint8 status;
-    
-    if (rate == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    status = OBD_Request(OBD_MODE_CURRENT_DATA, OBD_PID_MAF_RATE, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 2)
-    {
-        *rate = ((uint16)response.data[0] * 256 + response.data[1]);
-        return OBD_STATUS_OK;
-    }
-    
-    return OBD_STATUS_INVALID_DATA;
-}
-
-/*
- * Description: Get all common vehicle data at once
- */
-uint8 OBD_GetAllVehicleData(OBD_VehicleData *data)
-{
-    if (data == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    /* Initialize with default values */
-    data->engineRPM = 0;
-    data->vehicleSpeed = 0;
-    data->coolantTemp = -40;
-    data->intakeTemp = -40;
-    data->engineLoad = 0;
-    data->throttlePosition = 0;
-    data->fuelLevel = 0;
-    data->batteryVoltage = 0.0f;
-    data->mafRate = 0;
-    
-    /* Read each parameter (ignore individual errors) */
-    OBD_GetEngineRPM(&data->engineRPM);
-    OBD_GetVehicleSpeed(&data->vehicleSpeed);
-    OBD_GetCoolantTemp(&data->coolantTemp);
-    OBD_GetIntakeTemp(&data->intakeTemp);
-    OBD_GetEngineLoad(&data->engineLoad);
-    OBD_GetThrottlePosition(&data->throttlePosition);
-    OBD_GetFuelLevel(&data->fuelLevel);
-    OBD_GetBatteryVoltage(&data->batteryVoltage);
-    OBD_GetMAFRate(&data->mafRate);
-    
-    return OBD_STATUS_OK;
-}
-
-/*
- * Description: Parse DTC bytes into DTC structure
- */
-static void OBD_ParseDTC(uint8 highByte, uint8 lowByte, OBD_DTC *dtc)
-{
-    /* First two bits determine prefix */
-    switch ((highByte >> 6) & 0x03)
-    {
-        case 0: dtc->prefix = 'P'; break;  /* Powertrain */
-        case 1: dtc->prefix = 'C'; break;  /* Chassis */
-        case 2: dtc->prefix = 'B'; break;  /* Body */
-        case 3: dtc->prefix = 'U'; break;  /* Network */
-    }
-    
-    /* Extract digits */
-    dtc->digit1 = (highByte >> 4) & 0x03;
-    dtc->digit2 = highByte & 0x0F;
-    dtc->digit3 = (lowByte >> 4) & 0x0F;
-    dtc->digit4 = lowByte & 0x0F;
-}
-
-/*
- * Description: Read stored Diagnostic Trouble Codes
- */
-uint8 OBD_ReadDTCs(OBD_DTC *dtcArray, uint8 *dtcCount)
-{
-    MCP2515_Message txMsg;
-    MCP2515_Message rxMsg;
-    uint8 status;
-    uint8 numDTCs;
-    uint8 i;
-    uint8 byteIndex;
-    
-    if (dtcArray == NULL_PTR || dtcCount == NULL_PTR)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    *dtcCount = 0;
-    
-    /* Send Mode 03 request (no PID needed) */
-    txMsg.id = OBD_REQUEST_ID;
-    txMsg.idType = MCP2515_FRAME_STD;
-    txMsg.dlc = 8;
-    txMsg.data[0] = 0x01;           /* Number of additional bytes */
-    txMsg.data[1] = OBD_MODE_DTC_CODES;  /* Mode 03 */
-    txMsg.data[2] = 0x00;
-    txMsg.data[3] = 0x00;
-    txMsg.data[4] = 0x00;
-    txMsg.data[5] = 0x00;
-    txMsg.data[6] = 0x00;
-    txMsg.data[7] = 0x00;
-    
-    if (MCP2515_Transmit(&txMsg) != MCP2515_STATUS_OK)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    /* Receive response */
-    status = MCP2515_ReceiveWithTimeout(&rxMsg, OBD_RESPONSE_TIMEOUT);
-    if (status != MCP2515_STATUS_OK)
-    {
-        return OBD_STATUS_TIMEOUT;
-    }
-    
-    /* Verify response */
-    if (rxMsg.id < OBD_RESPONSE_ID_MIN || rxMsg.id > OBD_RESPONSE_ID_MAX)
-    {
-        return OBD_STATUS_INVALID_DATA;
-    }
-    
-    /* Check if response is for Mode 03 */
-    if (rxMsg.data[1] != (OBD_MODE_DTC_CODES + 0x40))
-    {
-        return OBD_STATUS_INVALID_DATA;
-    }
-    
-    /* Parse DTCs from response */
-    /* Format: [length][0x43][DTC1_high][DTC1_low][DTC2_high][DTC2_low]... */
-    numDTCs = (rxMsg.data[0] - 1) / 2;  /* Each DTC is 2 bytes */
-    
-    if (numDTCs > OBD_MAX_DTC_COUNT)
-    {
-        numDTCs = OBD_MAX_DTC_COUNT;
-    }
-    
-    byteIndex = 2;  /* Start after length and mode bytes */
-    for (i = 0; i < numDTCs && byteIndex < 7; i++)
-    {
-        /* Skip zero DTCs (no fault) */
-        if (rxMsg.data[byteIndex] == 0x00 && rxMsg.data[byteIndex + 1] == 0x00)
-        {
-            byteIndex += 2;
-            continue;
-        }
-        
-        OBD_ParseDTC(rxMsg.data[byteIndex], rxMsg.data[byteIndex + 1], &dtcArray[*dtcCount]);
-        (*dtcCount)++;
-        byteIndex += 2;
-    }
-    
-    return OBD_STATUS_OK;
-}
-
-/*
- * Description: Clear all Diagnostic Trouble Codes
- */
-uint8 OBD_ClearDTCs(void)
-{
-    MCP2515_Message txMsg;
-    MCP2515_Message rxMsg;
-    uint8 status;
-    
-    /* Send Mode 04 request */
-    txMsg.id = OBD_REQUEST_ID;
-    txMsg.idType = MCP2515_FRAME_STD;
-    txMsg.dlc = 8;
-    txMsg.data[0] = 0x01;               /* Number of additional bytes */
-    txMsg.data[1] = OBD_MODE_CLEAR_DTC;  /* Mode 04 */
-    txMsg.data[2] = 0x00;
-    txMsg.data[3] = 0x00;
-    txMsg.data[4] = 0x00;
-    txMsg.data[5] = 0x00;
-    txMsg.data[6] = 0x00;
-    txMsg.data[7] = 0x00;
-    
-    if (MCP2515_Transmit(&txMsg) != MCP2515_STATUS_OK)
-    {
-        return OBD_STATUS_ERROR;
-    }
-    
-    /* Receive acknowledgment */
-    status = MCP2515_ReceiveWithTimeout(&rxMsg, OBD_RESPONSE_TIMEOUT);
-    if (status != MCP2515_STATUS_OK)
-    {
-        return OBD_STATUS_TIMEOUT;
-    }
-    
-    /* Verify response */
-    if (rxMsg.data[1] == (OBD_MODE_CLEAR_DTC + 0x40))
-    {
-        return OBD_STATUS_OK;
-    }
-    
     return OBD_STATUS_ERROR;
 }
 
-/*
- * Description: Check if specific PID is supported
- */
-boolean OBD_IsPIDSupported(uint8 mode, uint8 pid)
+uint8 OBD_GetVehicleSpeed(uint8 *speed)
 {
-    uint32 supportedPIDs = 0;
-    uint8 pidOffset;
-    
-    if (mode != OBD_MODE_CURRENT_DATA)
-    {
-        /* Only Mode 01 supported for now */
-        return FALSE;
-    }
-    
-    /* Determine which PID group */
-    if (pid >= 0x01 && pid <= 0x20)
-    {
-        supportedPIDs = g_supportedPIDs_01_20;
-        pidOffset = pid - 1;
-    }
-    else if (pid >= 0x21 && pid <= 0x40)
-    {
-        if (g_supportedPIDs_21_40 == 0)
-        {
-            OBD_GetSupportedPIDs(mode, OBD_PID_SUPPORTED_PIDS_21_40, &g_supportedPIDs_21_40);
-        }
-        supportedPIDs = g_supportedPIDs_21_40;
-        pidOffset = pid - 0x21;
-    }
-    else if (pid >= 0x41 && pid <= 0x60)
-    {
-        if (g_supportedPIDs_41_60 == 0)
-        {
-            OBD_GetSupportedPIDs(mode, OBD_PID_SUPPORTED_PIDS_41_60, &g_supportedPIDs_41_60);
-        }
-        supportedPIDs = g_supportedPIDs_41_60;
-        pidOffset = pid - 0x41;
-    }
-    else
-    {
-        return FALSE;
-    }
-    
-    /* Check if PID bit is set (MSB first) */
-    return ((supportedPIDs & (0x80000000 >> pidOffset)) != 0) ? TRUE : FALSE;
+    return OBD_Request(OBD_PID_SPEED, speed, 1);
 }
 
-/*
- * Description: Get supported PIDs bitmap
- */
-uint8 OBD_GetSupportedPIDs(uint8 mode, uint8 startPID, uint32 *supportedPIDs)
+uint8 OBD_GetCoolantTemp(sint8 *temp)
 {
-    OBD_Response response;
-    uint8 status;
-    
-    if (supportedPIDs == NULL_PTR)
+    uint8 val;
+    if(OBD_Request(OBD_PID_COOLANT, &val, 1) == OBD_STATUS_OK)
     {
-        return OBD_STATUS_ERROR;
-    }
-    
-    *supportedPIDs = 0;
-    
-    status = OBD_Request(mode, startPID, &response);
-    if (status != OBD_STATUS_OK)
-    {
-        return status;
-    }
-    
-    if (response.dataLength >= 4)
-    {
-        /* Build 32-bit bitmap from 4 bytes */
-        *supportedPIDs = ((uint32)response.data[0] << 24) |
-                         ((uint32)response.data[1] << 16) |
-                         ((uint32)response.data[2] << 8) |
-                         ((uint32)response.data[3]);
+        *temp = (sint8)val - 40;
         return OBD_STATUS_OK;
     }
-    
-    return OBD_STATUS_INVALID_DATA;
+    return OBD_STATUS_ERROR;
 }
 
-/*
- * Description: Convert DTC to string format (e.g., "P0301")
- */
-void OBD_DTCToString(const OBD_DTC *dtc, char *buffer)
+uint8 OBD_GetBatteryVoltage(float32 *volt)
 {
-    if (dtc == NULL_PTR || buffer == NULL_PTR)
+    uint8 data[2];
+    if(OBD_Request(OBD_PID_VOLTAGE, data, 2) == OBD_STATUS_OK)
     {
-        return;
+        *volt = ((uint16)data[0] * 256 + data[1]) / 1000.0f;
+        return OBD_STATUS_OK;
     }
-    
-    buffer[0] = dtc->prefix;
-    buffer[1] = '0' + dtc->digit1;
-    buffer[2] = '0' + dtc->digit2;
-    buffer[3] = '0' + dtc->digit3;
-    buffer[4] = '0' + dtc->digit4;
-    buffer[5] = '\0';
+    return OBD_STATUS_ERROR;
 }

@@ -1,0 +1,78 @@
+#include "tm4c123gh6pm_registers.h"
+#include "std_types.h"
+#include "lcd.h"
+#include "mcp2515.h"
+#include "led.h"
+#include "delay.h"
+
+/* Manual Debug Function to read CANSTAT register */
+uint8 Debug_ReadCANSTAT(void)
+{
+    uint8 value;
+    /* Manual Register Read Sequence */
+    SPI_CS_Assert();
+    SPI_Write(0x03); /* Read Command */
+    SPI_Write(0x0E); /* CANSTAT Address */
+    value = SPI_Read();
+    SPI_CS_Deassert();
+    return value;
+}
+
+/* Helper to Print Hex Byte */
+void LCD_PrintHex(uint8 val)
+{
+    char hex[] = "0123456789ABCDEF";
+    LCD_SendData(hex[(val >> 4) & 0x0F]);
+    LCD_SendData(hex[val & 0x0F]);
+}
+
+int main(void)
+{
+    uint8 regVal;
+    
+    LCD_Init();       
+    LED_Init();
+    
+    /* Initialize SPI/MCP */
+    MCP2515_Config cfg;
+    cfg.baudRate = MCP2515_BAUD_500KBPS;
+    
+    LCD_Clear();
+    LCD_WriteString("SPI Debug Mode");
+    Delay_MS(1000);
+    
+    /* 1. Try Init */
+    uint8 status = MCP2515_Init(&cfg);
+    
+    LCD_Clear();
+    LCD_SetCursor(0, 0);
+    
+    if(status == MCP2515_STATUS_OK) {
+        LCD_WriteString("MCP: OK!");
+        LED_On(LED_GREEN);
+    } else {
+        LCD_WriteString("MCP: FAIL");
+        LED_On(LED_RED);
+    }
+    
+    /* 2. Debug Loop */
+    /* Continually read CANSTAT to see if we get ANY data */
+    while(1)
+    {
+        regVal = Debug_ReadCANSTAT();
+        
+        LCD_SetCursor(1, 0);
+        LCD_WriteString("Rx: 0x");
+        LCD_PrintHex(regVal);
+        LCD_WriteString("      ");
+        
+        /* Analysis */
+        LCD_SetCursor(1, 10);
+        if(regVal == 0x00) LCD_WriteString("GND?");   /* MISO stuck Low */
+        else if(regVal == 0xFF) LCD_WriteString("VCC?"); /* MISO stuck High */
+        else if((regVal & 0xE0) == 0x80) LCD_WriteString("GOOD"); /* Config Mode */
+        else LCD_WriteString("UNK ");
+        
+        Delay_MS(200);
+    }
+}

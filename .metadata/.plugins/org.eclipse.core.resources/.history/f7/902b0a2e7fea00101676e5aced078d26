@@ -1,0 +1,21 @@
+/* Debug Loop - Loopback Test */
+    while(1)
+    {
+        /* Send 0xAA (10101010) */
+        /* If MISO is connected to MOSI, we MUST receive 0xAA back */
+        SPI_CS_Assert();
+        uint8 received = SPI_Transfer(0xAA);
+        SPI_CS_Deassert();
+        
+        LCD_SetCursor(1, 0);
+        LCD_WriteString("Sent:AA Rx:");
+        LCD_PrintHex(received);
+        
+        if(received == 0xAA) {
+            LCD_WriteString(" PASS"); /* Code is 100% working */
+        } else {
+            LCD_WriteString(" FAIL"); /* Tiva Pin or Code issue */
+        }
+        
+        Delay_MS(500);
+    }

@@ -1,0 +1,203 @@
+#include "tm4c123gh6pm_registers.h"
+#include "std_types.h"
+#include "lcd.h"
+#include "obd.h"
+#include "pushbutton.h"
+#include "led.h"
+#include "delay.h"
+
+/* Application States */
+typedef enum {
+    STATE_TEST_RPM,
+    STATE_TEST_SPEED,
+    STATE_TEST_COOLANT,
+    STATE_TEST_VOLTAGE,
+    STATE_MAX_STATES
+} AppState_t;
+
+/* --- Helper Functions for LCD Display --- */
+void LCD_PrintInt(sint32 num)
+{
+    char buffer[12];
+    char *ptr = buffer;
+    uint32 u_val;
+    
+    if (num < 0) {
+        LCD_SendData('-');
+        u_val = (uint32)(-num);
+    } else {
+        u_val = (uint32)num;
+    }
+    
+    if (u_val == 0) {
+        LCD_SendData('0');
+        return;
+    }
+    
+    while (u_val > 0) {
+        *ptr++ = (char)((u_val % 10) + '0');
+        u_val /= 10;
+    }
+    
+    while (ptr > buffer) {
+        LCD_SendData(*(--ptr));
+    }
+}
+
+void LCD_PrintFloat(float32 num)
+{
+    sint32 intPart = (sint32)num;
+    sint32 decPart = (sint32)((num - intPart) * 10);
+    if(decPart < 0) decPart = -decPart;
+    LCD_PrintInt(intPart);
+    LCD_SendData('.');
+    LCD_PrintInt(decPart);
+}
+
+int main(void)
+{
+    AppState_t currentState = STATE_TEST_RPM;
+    
+    /* Simulation Variables */
+    uint16 simRPM = 800;
+    uint8  simSpeed = 0;
+    sint8  simTemp = 85;
+    float32 simVolt = 12.4f;
+    boolean increasing = TRUE;
+    
+    /* Timing & Input Variables */
+    uint8 simUpdateCounter = 0;
+    boolean btnPrevState = FALSE;
+    boolean btnCurrState = FALSE;
+    
+    /* 1. Hardware Initialization */
+    LCD_Init();       
+    Button_Init();    /* SW1 on PF4 */
+    LED_Init();       /* RGB LEDs */
+    
+    /* 2. Intro Screen */
+    LCD_Clear();
+    LCD_SetCursor(0, 0);
+    LCD_WriteString("Hardware Test");
+    LCD_SetCursor(1, 0);
+    LCD_WriteString("Checking SPI...");
+    LED_On(LED_ALL); /* Flash White */
+    Delay_MS(500);
+    LED_Off(LED_ALL);
+    
+    /* 3. MCP2515 SPI Connection Test */
+    /* This checks if the Tiva can talk to the CAN Controller chip */
+    if(OBD_Init() == OBD_STATUS_OK)
+    {
+        /* SUCCESS */
+        LED_On(LED_GREEN); 
+        LCD_Clear();
+        LCD_SetCursor(0, 0);
+        LCD_WriteString("MCP2515: OK");
+        LCD_SetCursor(1, 0);
+        LCD_WriteString("Starting Sim...");
+        Delay_MS(1500);
+    }
+    else
+    {
+        /* FAILURE */
+        LED_On(LED_RED); 
+        LCD_Clear();
+        LCD_SetCursor(0, 0);
+        LCD_WriteString("MCP2515: FAIL");
+        LCD_SetCursor(1, 0);
+        LCD_WriteString("Check Wiring!");
+        
+        /* If it fails, we pause here so you can see the error, 
+           but we still continue to the simulation loop so you can 
+           test the Button/LCD. */
+        Delay_MS(2000); 
+    }
+    
+    LED_Off(LED_ALL);
+
+    /* 4. Prepare Simulation */
+    LCD_Clear();
+    LCD_SetCursor(0, 0);
+    LCD_WriteString("Test: Engine RPM");
+    
+    /* 5. Main Simulation Loop */
+    while(1)
+    {
+        /* A. FAST BUTTON POLLING (Action on Press) */
+        btnCurrState = Button_IsPressed();
+        
+        /* Detect Rising Edge (Not Pressed -> Pressed) */
+        if (btnCurrState == TRUE && btnPrevState == FALSE)
+        {
+            /* 1. Visual Feedback (Blue Flash) */
+            LED_On(LED_BLUE);
+            
+            /* 2. Change State Immediately */
+            currentState++;
+            if(currentState >= STATE_MAX_STATES)
+            {
+                currentState = STATE_TEST_RPM;
+            }
+            
+            /* 3. Update Title Immediately */
+            LCD_Clear();
+            LCD_SetCursor(0, 0);
+            switch(currentState)
+            {
+                case STATE_TEST_RPM:     LCD_WriteString("Test: Engine RPM"); break;
+                case STATE_TEST_SPEED:   LCD_WriteString("Test: Speed km/h"); break;
+                case STATE_TEST_COOLANT: LCD_WriteString("Test: Coolant C"); break;
+                case STATE_TEST_VOLTAGE: LCD_WriteString("Test: Batt Volt"); break;
+            }
+        }
+        else if (btnCurrState == FALSE && btnPrevState == TRUE)
+        {
+            /* Button Released - Turn off Blue LED */
+            LED_Off(LED_BLUE);
+        }
+        
+        btnPrevState = btnCurrState; /* Update history */
+        
+        /* B. SIMULATION UPDATE (Interval: 150ms) */
+        simUpdateCounter++;
+        if (simUpdateCounter > 15)
+        {
+            simUpdateCounter = 0;
+            
+            /* Update Physics (Simulate driving) */
+            if(increasing) {
+                simRPM += 50; simSpeed++;
+                if(simRPM > 3500) increasing = FALSE;
+            } else {
+                simRPM -= 50; simSpeed--;
+                if(simRPM < 800) increasing = TRUE;
+            }
+            
+            /* Update LCD Data Line */
+            LCD_SetCursor(1, 0);
+            switch(currentState)
+            {
+                case STATE_TEST_RPM:
+                    LCD_PrintInt((sint32)simRPM);
+                    LCD_WriteString(" rpm     "); 
+                    break;
+                case STATE_TEST_SPEED:
+                    LCD_PrintInt((sint32)simSpeed);
+                    LCD_WriteString(" km/h    ");
+                    break;
+                case STATE_TEST_COOLANT:
+                    LCD_PrintInt((sint32)simTemp);
+                    LCD_WriteString(" C       ");
+                    break;
+                case STATE_TEST_VOLTAGE:
+                    LCD_PrintFloat(simVolt);
+                    LCD_WriteString(" V       ");
+                    break;
+            }
+        }
+        
+        /* C. Short Delay (High Polling Rate) */
+        Delay_MS(10);
+    }
+}
